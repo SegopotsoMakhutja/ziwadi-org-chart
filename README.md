@@ -1,36 +1,182 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ziwadi Organization Chart Application
 
-## Getting Started
+A organizational chart application built with Next.js and TypeScript.
 
-First, run the development server:
+## 🚀 Features
+
+- **Interactive Org Chart**: Visualize hierarchical organizational structure
+- **Employee Management**: Add and remove employees with automatic hierarchy updates
+- **Dynamic Relationships**: Manage reporting relationships with intuitive UI
+- **Responsive Design**: Works seamlessly across desktop and mobile devices
+- **Accessibility**: Built with ARIA labels and keyboard navigation support
+- **Type Safety**: Full TypeScript implementation for robust code quality
+
+## 🛠 Tech Stack
+
+- **Framework**: Next.js 14+ (App Router)
+- **Language**: TypeScript 5+
+- **State Management**: React useState (Local State)
+- **Styling**: Inline styles for simplicity
+- **UUID Generation**: uuid v4
+
+## 🏗 Architecture
+
+### Data Structure
+
+The application uses a flat array-based structure for storing employee data, prioritizing simplicity and performance:
+
+```typescript
+interface Employee {
+  id: string;
+  name: string;
+  role: string;
+  managerId: string | null;
+}
+```
+
+### Key Design Decisions
+
+1. **Flat Data Structure**
+   - Uses managerId references instead of nested objects
+   - Simplifies state management and updates
+
+2. **Component Hierarchy**
+
+```markdown
+App (page.tsx)
+├── AddEmployeeForm
+└── EmployeeCard
+    └── Recursive EmployeeCard (for subordinates)
+```
+
+3. **State Management**
+   - Local state with useState for simplicity (data not persistent)
+   - Centralized state management in the root component
+   - Props drilling for data flow
+   - Pure function utilities for data manipulation
+
+### Core Utilities
+
+```typescript
+// Get direct subordinates
+getSubordinates(employees, managerId)
+
+// Get all reports (direct and indirect)
+getAllReports(employees, managerId)
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+
+```bash
+git clone
+cd ziwadi-org-chart
+```
+
+2. Install dependencies
+
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Start the development server
 
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**alternatively you can use docker-compose**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 💻 Usage
 
-## Learn More
+### Adding Employees
 
-To learn more about Next.js, take a look at the following resources:
+1. Fill out the employee form with name and role
+2. Select a manager (or leave as root for top-level employees)
+3. Click "Add Employee"
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Managing the Organization
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Use the +/- buttons to expand/collapse subordinates
+- Delete employees (and their subordinates) using the delete button
+- View the entire organization hierarchy from root employees
 
-## Deploy on Vercel
+## 🔧 Implementation Details
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### State Updates
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The application handles state updates efficiently:
+
+```typescript
+// Adding employees
+const handleAddEmployee = (newEmployee: Omit<Employee, 'id'>) => {
+  const employeeWithId = {
+    ...newEmployee,
+    id: uuidv4(),
+  };
+  setEmployees([...employees, employeeWithId]);
+};
+
+// Deleting employees (with cascade)
+const handleDeleteEmployee = (id: string) => {
+  const reportsToDelete = getAllReports(employees, id);
+  setEmployees(employees.filter(emp => 
+    emp.id !== id && !reportsToDelete.includes(emp.id)
+  ));
+};
+```
+
+### Performance Considerations
+
+- Uses memoization for expensive operations
+- Implements efficient filtering for hierarchical data
+
+### Accessibility
+
+- ARIA labels for interactive elements
+- Keyboard navigation support
+- Semantic HTML structure
+- Clear visual hierarchy
+
+## 🔍 Code Organization
+
+```markdown
+org-chart/
+├── app/               # Next.js app directory
+│   ├── layout.tsx     # main root layout
+│   └── page.tsx       # Main application page
+├── components/        # React components
+│   ├── EmployeeCard.tsx
+│   └── AddEmployeeForm.tsx
+├── types/            # TypeScript interfaces
+│   └── employee.ts
+└── utils/            # Utility functions
+    └── employeeUtils.ts
+```
+
+## 🛠 Future Enhancements
+
+1. **Data Persistence**
+   - Add API integration
+   - Implement database storage
+
+2. **Advanced Features**
+   - Search and filtering
+   - Export/import functionality
+
+3. **UI Improvements**
+   - Different view modes (list, grid, etc.)
